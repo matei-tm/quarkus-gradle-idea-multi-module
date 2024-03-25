@@ -3,23 +3,24 @@ FROM registry.access.redhat.com/ubi8/openjdk-21:1.18
 
 WORKDIR /mmdemo
 
-deps:
-    COPY pom.xml ./
-    RUN mvn -B de.qaware.maven:go-offline-maven-plugin:1.2.5:resolve-dependencies
-    SAVE IMAGE
-
 check:
     COPY . .
     RUN ./gradlew clean check
     SAVE ARTIFACT module-2/build/reports/ /reports AS LOCAL build/reports
 
-build-cache:
+build-deps:
     COPY . .
     RUN ./gradlew clean quarkusBuild
-    SAVE ARTIFACT module-2/build/quarkus-app/ /target AS LOCAL build-cache/target
+    SAVE IMAGE
+
+build-base:
+    FROM +build-deps
+    COPY . .
+    RUN ./gradlew clean quarkusBuild
+    SAVE ARTIFACT module-2/build/quarkus-app/ /target AS LOCAL build-base/target
 
 build:
-    COPY --chown=185 +build-cache/target /deployments
+    COPY --chown=185 +build-base/target /deployments
 
     EXPOSE 8080
     USER 185

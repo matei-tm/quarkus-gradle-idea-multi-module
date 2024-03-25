@@ -32,3 +32,5 @@ nb-configuration.xml
 # Gradle
 .gradle/
 build/
+build-cache/
+.tmp-earthly-out
